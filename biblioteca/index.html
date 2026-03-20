@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Biblioteca Encantada</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <div class="logo-area">
+        <div class="logo-icon">📖</div>
+        <div>
+          <h1 class="title-font">Biblioteca Encantada</h1>
+          <p class="subtitle">Desde 2026 • Rio Grande do Sul</p>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="tab-button active" data-tab="0">
+          <i class="fas fa-books"></i> Todas as Prateleiras
+        </button>
+        <button class="tab-button" data-tab="1">
+          <i class="fas fa-search"></i> Buscar
+        </button>
+        <button id="btn-add-book" class="btn-primary">
+          <i class="fas fa-plus"></i> NOVO LIVRO
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container main-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h3 class="sidebar-title"><i class="fas fa-tags"></i> GÊNEROS</h3>
+        <div id="genre-list" class="genre-list"></div>
+
+        <hr class="divider"/>
+
+        <h4 class="sidebar-subtitle">Status</h4>
+        <div id="status-all" class="status-item active"><i class="fas fa-book"></i> Todos <span class="count">0</span></div>
+        <div id="status-queroler" class="status-item"><i class="fas fa-bookmark"></i> Quero Ler <span class="count">0</span></div>
+        <div id="status-lendo" class="status-item"><i class="fas fa-book-open"></i> Lendo <span class="count">0</span></div>
+        <div id="status-lido" class="status-item"><i class="fas fa-check-circle"></i> Lido <span class="count">0</span></div>
+      </div>
+
+      <div class="tip-card">
+        <i class="fas fa-lightbulb"></i>
+        <p>Arraste os livros entre as prateleiras para reorganizar (v2)</p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content-area">
+
+      <div class="filters-row">
+        <input id="search-input" type="text" placeholder="🔎 Buscar por título, autor ou gênero..." class="search-bar"/>
+        
+        <div class="filter-controls">
+          <select id="sort-select" class="sort-select">
+            <option value="title">Ordenar por Título</option>
+            <option value="author">Ordenar por Autor</option>
+            <option value="year">Ordenar por Ano</option>
+            <option value="rating">Ordenar por Nota</option>
+          </select>
+          <button id="btn-clear-filters" class="btn-outline">
+            <i class="fas fa-undo"></i> Limpar
+          </button>
+        </div>
+      </div>
+
+      <div id="shelves-container" class="shelves-container"></div>
+
+    </main>
+  </div>
+
+  <!-- Modal Detalhes -->
+  <div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-content detail-modal">
+      <div class="modal-header">
+        <h2 id="modal-book-title"></h2>
+        <button class="modal-close" onclick="hideDetailModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-cover" class="modal-cover-large"></div>
+        <div class="modal-info">
+          <div>
+            <div class="label">AUTOR</div>
+            <div id="modal-author" class="value"></div>
+          </div>
+          <div class="info-grid">
+            <div>
+              <div class="label">GÊNERO</div>
+              <div id="modal-genre" class="value"></div>
+            </div>
+            <div>
+              <div class="label">ANO</div>
+              <div id="modal-year" class="value"></div>
+            </div>
+          </div>
+          <div>
+            <div class="label">STATUS</div>
+            <div id="modal-status-buttons" class="status-buttons"></div>
+          </div>
+          <div>
+            <div class="label">Sua nota:</div>
+            <div id="modal-stars" class="stars"></div>
+          </div>
+          <div id="modal-description" class="description"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="editCurrentBook()" class="btn-primary"><i class="fas fa-edit"></i> EDITAR</button>
+        <button onclick="deleteCurrentBook()" class="btn-danger"><i class="fas fa-trash"></i> EXCLUIR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Formulário -->
+  <div id="form-modal" class="modal-overlay hidden">
+    <div class="modal-content form-modal">
+      <div class="modal-header">
+        <h2 id="form-modal-title">Adicionar Novo Livro</h2>
+        <button class="modal-close" onclick="hideFormModal()">×</button>
+      </div>
+      <form id="book-form" class="form-content">
+        <input type="hidden" id="book-id"/>
+
+        <div class="form-group">
+          <label>Capa (URL)</label>
+          <input id="cover-url" type="url" placeholder="https://..."/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Título *</label>
+            <input id="title" required type="text"/>
+          </div>
+          <div class="form-group">
+            <label>Autor *</label>
+            <input id="author" required type="text"/>
+          </div>
+        </div>
+
+        <div class="form-row three-cols">
+          <div class="form-group">
+            <label>Gênero *</label>
+            <input id="genre" required type="text" placeholder="Fantasia, Romance..."/>
+          </div>
+          <div class="form-group">
+            <label>Ano</label>
+            <input id="year" type="number"/>
+          </div>
+          <div class="form-group">
+            <label>Nota</label>
+            <select id="rating">
+              <option value="0">—</option>
+              <option value="1">★</option>
+              <option value="2">★★</option>
+              <option value="3">★★★</option>
+              <option value="4">★★★★</option>
+              <option value="5">★★★★★</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <div class="radio-group">
+            <label><input type="radio" name="status" value="Quero Ler" checked/> Quero Ler</label>
+            <label><input type="radio" name="status" value="Lendo"/> Lendo</label>
+            <label><input type="radio" name="status" value="Lido"/> Lido</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <textarea id="description" rows="4"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" onclick="hideFormModal()" class="btn-outline">Cancelar</button>
+          <button type="submit" class="btn-primary">Salvar Livro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
